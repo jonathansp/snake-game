@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title> Snake Game</title>
+    <style type="text/css">
+      #code {
+        display: inline-block;
+        width: 400px;
+        height: 300px;
+      }
+
+      #apply {
+        display: inline-block;
+      }
+
+      #snake-board {
+        float: right;
+      }
+
+      .snake-body {
+        background-color: black;
+      }
+
+      .snake-food {
+        background-color: blue;
+      }
+
+      .editor {
+        width: 300px;
+        padding: 10px;
+        float: left;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="editor">
+      <button id="apply" onclick="apply()">Aplicar</button>
+      <label>Example of code</label>
+      <textarea id="code">
+  class Player {
+      move(context) {
+
+        const head = context.snake.body[context.snake.body.length-1];
+
+        let move = context.snake.direction;
+
+        if (context.snake.direction === 'down'){
+          if (head.x === context.boundaries.x.max || head.x === context.food.x) move = 'right';
+        }
+
+        if (context.snake.direction === 'right') {
+          if (head.y === context.boundaries.y.max) move = 'up';
+        }
+
+        if (context.snake.direction === 'up') {
+          if(head.x === 0 || head.x === context.food.x) move = 'left';
+        }
+
+        if (context.snake.direction === 'left') {
+          if(head.y === 0) move = 'down';
+        }
+
+        return move;
+      }
+  }
+  </textarea>
+</div>
+  <script type="text/javascript" src="dist/snake-game.js"></script>
+  </body>
+</html>
