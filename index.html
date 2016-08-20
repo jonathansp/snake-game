@@ -1,252 +1,264 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<title></title>
-</head>
-<body>
+  <head>
+    <title></title>
+  </head>
+  <body>
 
-<style type="text/css">
-		
-	.snake-body {
-		background-color: black;
-	}
+    <style type="text/css">
+      .snake-body {
+        background-color: black;
+      }
 
-	.snake-food {
-		background-color: blue;
-	}
+      .snake-food {
+        background-color: blue;
+      }
+    </style>
 
-</style>
+    <script type="text/javascript">
 
-<script type="text/javascript">
-	
-	class Snake {
+      class Snake {
 
-		constructor () {
+        constructor () {
 
-			this.body = [
+          this.body = [
 
-				{x: 0, y: 0}, // <- TAIL
-				{x: 1, y: 0},
-				{x: 2, y: 0},
-				{x: 3, y: 0}  // <- HEAD
-			];
+            {x: 0, y: 0}, // <- TAIL
+            {x: 1, y: 0},
+            {x: 2, y: 0},
+            {x: 3, y: 0}  // <- HEAD
+          ];
 
-			this.walkingTo = 'down';
-		}
+          this.walkingTo = 'down';
+        }
 
-		to (direction) {
+        to (direction) {
 
-			if (this.isValidMove(direction) ) {
-				this.walkingTo = direction;
-			}
-		}
+          if (this.isValidMove(direction) ) {
+            this.walkingTo = direction;
+          }
+        }
 
 
-		isValidMove (direction) {
+        isValidMove (direction) {
 
-			return !(  (direction === 'right' && this.walkingTo === 'left') ||
-	 				   (direction === 'left' && this.walkingTo === 'right') ||
-	 				   (direction === 'up' && this.walkingTo === 'down')    ||
-	 				   (direction === 'down' && this.walkingTo === 'up') );
-		}
+          return !(  (direction === 'right' && this.walkingTo === 'left') ||
+                   (direction === 'left' && this.walkingTo === 'right') ||
+                   (direction === 'up' && this.walkingTo === 'down')    ||
+                   (direction === 'down' && this.walkingTo === 'up') );
+        }
 
-		head () {
+        head () {
 
-			const head = this.body[this.body.length - 1];
-			return JSON.parse( JSON.stringify ( head ));  // clone object
-		}
+          const head = this.body[this.body.length - 1];
+          return JSON.parse( JSON.stringify ( head ));  // clone object
+        }
 
-		tail () {
+        tail () {
 
-			const tail = this.body[0];
-			return JSON.parse( JSON.stringify ( tail ));  // clone object
-		}
+          const tail = this.body[0];
+          return JSON.parse( JSON.stringify ( tail ));  // clone object
+        }
 
-		found (food) {
-			
-			const head = this.head();
-			return (head.x === food.x && head.y === food.y);
-		}
+        found (food) {
 
-		eat (food) {
+          const head = this.head();
+          return (head.x === food.x && head.y === food.y);
+        }
 
-			this.body.unshift( this.tail() );
-		}
+        eat (food) {
 
-		move () {
+          this.body.unshift( this.tail() );
+        }
 
-			this.body.shift();
-			const head = this.head();
+        bytingItself () {
 
-			switch (this.walkingTo) {
+          const head = this.head();
+          return this.body
+                     .map((i) => head.x === i.x && head.y === i.y)
+                     .filter((i) => i).length > 1 // Head and other on same
+        }
 
-				case 'down':
-					this.body.push( { x: ++head.x, y: head.y } );  break;
+        move () {
 
-				case 'up':
-					this.body.push( { x: --head.x, y: head.y } );  break;
+          this.body.shift();
+          const head = this.head();
 
-				case 'right':
-					this.body.push( { x: head.x, y: ++head.y } );  break;
+          switch (this.walkingTo) {
 
-				case 'left':
-					this.body.push( { x: head.x, y: --head.y } );  break;
-			}
-		}
-	}
+            case 'down':
+              this.body.push( { x: ++head.x, y: head.y } );  break;
 
+            case 'up':
+              this.body.push( { x: --head.x, y: head.y } );  break;
 
+            case 'right':
+              this.body.push( { x: head.x, y: ++head.y } );  break;
 
-	class Engine {
+            case 'left':
+              this.body.push( { x: head.x, y: --head.y } );  break;
+          }
+        }
+      }
 
-		constructor () {
 
-			this.board = new Board(50, 40);
-			this.loopInterval = 100;
-			this.ui = null;
-		}
 
-		setUI (BoardUIClass) {
-			this.ui = new BoardUIClass(this.board);
+      class Engine {
 
-		}
+        constructor () {
 
-		run () {
+          this.board = new Board(50, 40);
+          this.loopInterval = 100;
+          this.ui = null;
+        }
 
-			const self = this;
+        setUI (BoardUIClass) {
+          this.ui = new BoardUIClass(this.board);
 
-			setInterval(function () {
-				self.board.tick()
-				if (self.ui) {
-					self.ui.draw();
-				}
+        }
 
-			}, this.loopInterval);
-		}
-	}
+        run () {
 
+          const self = this;
 
-	class Board {
+          setInterval(function () {
+            self.board.tick()
+            if (self.ui) {
+              self.ui.draw();
+            }
 
-		constructor (lines, columns) {
+          }, this.loopInterval);
+        }
+      }
 
-			this.snake = new Snake();
-			this.lines = lines;
-			this.columns = columns;
-			this.loopInterval = 100;
-			this.plant();
-		}
 
-		tick () {
+      class Board {
 
-			if (this.snake.found (this.food) ) {
-				this.snake.eat(this.food);
-				this.plant();
-			}
-			this.snake.move();
-		}
+        constructor (lines, columns) {
 
-		plant () {
+          this.snake = new Snake();
+          this.lines = lines;
+          this.columns = columns;
+          this.loopInterval = 100;
+          this.plant();
+        }
 
-			const x = Math.floor( Math.random() * this.lines ) + 0;
-			const y = Math.floor( Math.random() * this.columns ) + 0;
-			this.food = { x: x, y: y };
+        tick () {
+          this.gameOver = this.snake.bytingItself();
 
-		}
-	}
+          if (this.gameOver) return;
 
+          if (this.snake.found (this.food) ) {
+            this.snake.eat(this.food);
+            this.plant();
+          }
+          this.snake.move();
+        }
 
-	class BoardConsoleUI {
+        plant () {
 
+          const x = Math.floor( Math.random() * this.lines ) + 0;
+          const y = Math.floor( Math.random() * this.columns ) + 0;
+          this.food = { x: x, y: y };
 
-	}
+        }
+      }
 
-	class BoardBrowserUI {
 
+      class BoardConsoleUI {
 
-		constructor (board) {
-			this.board = board;
-			this.createTable();
-		}
 
-		createTable () {
+      }
 
-			const table = document.createElement('table');
-			table.setAttribute('width', 600);
-			table.setAttribute('height', 600);
-			table.setAttribute('border', 1);
-			
-			for (let line = 0; line <= this.board.lines; line++) {
-				let tr = document.createElement('tr');
-				for (let column = 0; column <= this.board.columns; column++) {
+      class BoardBrowserUI {
 
-					let td = document.createElement('td');
-					td.setAttribute('data-x', line);
-					td.setAttribute('data-y', column);
-					td.setAttribute('data-coordinate', '');
-					tr.appendChild(td);
+        constructor (board) {
+          this.board = board;
+          this.createTable();
+        }
 
-				}
+        createTable () {
 
-				table.appendChild(tr);
-			}
+          const table = document.createElement('table');
+          table.setAttribute('width', 600);
+          table.setAttribute('height', 600);
+          table.setAttribute('border', 1);
 
-			document.body.appendChild(table);
-		}
+          for (let line = 0; line <= this.board.lines; line++) {
+            let tr = document.createElement('tr');
+            for (let column = 0; column <= this.board.columns; column++) {
 
-		draw () {
+              let td = document.createElement('td');
+              td.setAttribute('data-x', line);
+              td.setAttribute('data-y', column);
+              td.setAttribute('data-coordinate', '');
+              tr.appendChild(td);
 
-			for (let td of document.querySelectorAll('td')) {
-				td.className = '';
-			}
+            }
 
-			for (let square of this.board.snake.body) {
+            table.appendChild(tr);
+          }
 
-				let x = '[data-x="' + square.x + '"]';
-				let y = '[data-y="' + square.y + '"]';
-				let bodyItem = document.querySelector('td' + x + y);
-				bodyItem.className = 'snake-body';
-			}
+          document.body.appendChild(table);
+        }
 
-			const x = '[data-x="' + this.board.food.x + '"]';
-			const y = '[data-y="' + this.board.food.y + '"]';
-			const foodItem = document.querySelector('td' + x + y);
-			foodItem.className = 'snake-food';
-		}
-	}
+        draw () {
+          if (this.board.gameOver) {
+            alert("Game over!");
+          }
 
+          for (let td of document.querySelectorAll('td')) {
+            td.className = '';
+          }
 
+          for (let square of this.board.snake.body) {
 
+            let x = '[data-x="' + square.x + '"]';
+            let y = '[data-y="' + square.y + '"]';
+            let bodyItem = document.querySelector('td' + x + y);
+            bodyItem.className = 'snake-body';
+          }
 
+          const x = '[data-x="' + this.board.food.x + '"]';
+          const y = '[data-y="' + this.board.food.y + '"]';
+          const foodItem = document.querySelector('td' + x + y);
+          foodItem.className = 'snake-food';
+        }
 
+      }
 
 
 
-	function main () {
 
-		const engine = new Engine();
-		engine.setUI(BoardBrowserUI);
-		engine.run();
 
-		document.body.addEventListener("keydown", (event) => {
 
-			switch (event.keyCode) {
-				case 40:
-					engine.board.snake.to('down'); break;
-				case 38:
-					engine.board.snake.to('up'); break;
-				case 39:
-					engine.board.snake.to('right'); break;
-				case 37:
-					engine.board.snake.to('left'); break;
-			}
-		});
-	}
 
-	main();
 
+      function main () {
 
-</script>
+        const engine = new Engine();
+        engine.setUI(BoardBrowserUI);
+        engine.run();
 
-</body>
+        document.body.addEventListener("keydown", (event) => {
+
+          switch (event.keyCode) {
+            case 40:
+              engine.board.snake.to('down'); break;
+            case 38:
+              engine.board.snake.to('up'); break;
+            case 39:
+              engine.board.snake.to('right'); break;
+            case 37:
+              engine.board.snake.to('left'); break;
+          }
+        });
+      }
+
+      main();
+
+
+    </script>
+
+  </body>
 </html>
