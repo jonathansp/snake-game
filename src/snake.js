@@ -12,22 +12,23 @@ class Snake {
     ];
 
     this.walkingTo = 'down';
+    this.movingStack = [];
   }
 
   to (direction) {
 
     if (this.isValidMove(direction) ) {
-      this.walkingTo = direction;
+      this.movingStack.push(direction);
     }
   }
 
 
   isValidMove (direction) {
 
-    return !(  (direction === 'right' && this.walkingTo === 'left') ||
-             (direction === 'left' && this.walkingTo === 'right') ||
-             (direction === 'up' && this.walkingTo === 'down')    ||
-             (direction === 'down' && this.walkingTo === 'up') );
+    return !( (direction === 'right' && this.walkingTo === 'left') ||
+              (direction === 'left' && this.walkingTo === 'right') ||
+              (direction === 'up' && this.walkingTo === 'down')    ||
+              (direction === 'down' && this.walkingTo === 'up') );
   }
 
   head () {
@@ -69,6 +70,8 @@ class Snake {
   }
 
   move () {
+
+    this.walkingTo = this.movingStack.pop() || this.walkingTo;
 
     this.body.shift();
     const head = this.head();
