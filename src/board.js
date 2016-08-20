@@ -7,12 +7,16 @@ class Board {
     this.columns = columns;
     this.loopInterval = 100;
     this.plant();
+    this.xBound = { min: 0, max: this.lines};
+    this.yBound = { min: 0, max: this.columns};
+  }
+
+  gameOver () {
+    return this.snake.isBytingItself() ||
+           !this.snake.isOn(this.xBound, this.yBound);
   }
 
   tick () {
-    this.gameOver = this.snake.bytingItself();
-
-    if (this.gameOver) return;
 
     if (this.snake.found (this.food) ) {
       this.snake.eat(this.food);

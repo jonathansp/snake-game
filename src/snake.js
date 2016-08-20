@@ -53,12 +53,19 @@ class Snake {
     this.body.unshift( this.tail() );
   }
 
-  bytingItself () {
+  isBytingItself () {
 
-    const head = this.head();
+    // Head and other on same square
+    const h = this.head();
+    return this.body.filter((i) => h.x === i.x && h.y === i.y).length > 1
+  }
+
+  isOn(xBound, yBound) {
     return this.body
-    .map((i) => head.x === i.x && head.y === i.y)
-    .filter((i) => i).length > 1 // Head and other on same
+               .filter((i) => i.x > xBound.max ||
+                              i.x < xBound.min ||
+                              i.y > yBound.max ||
+                              i.y < yBound.min).length === 0;
   }
 
   move () {

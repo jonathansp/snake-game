@@ -20,12 +20,13 @@ class Engine {
 
     const self = this;
 
-    setInterval(function () {
-      self.board.tick()
+    const gameLoop = setInterval(function () {
+      self.board.tick();
+      if (self.board.gameOver()) { clearInterval(gameLoop); }
+
       if (self.ui) {
         self.ui.draw();
       }
-
     }, this.loopInterval);
   }
 }

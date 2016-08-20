@@ -124,8 +124,12 @@
 
 	      var self = this;
 
-	      setInterval(function () {
+	      var gameLoop = setInterval(function () {
 	        self.board.tick();
+	        if (self.board.gameOver()) {
+	          clearInterval(gameLoop);
+	        }
+
 	        if (self.ui) {
 	          self.ui.draw();
 	        }
@@ -205,15 +209,21 @@
 	      this.body.unshift(this.tail());
 	    }
 	  }, {
-	    key: 'bytingItself',
-	    value: function bytingItself() {
+	    key: 'isBytingItself',
+	    value: function isBytingItself() {
 
-	      var head = this.head();
-	      return this.body.map(function (i) {
-	        return head.x === i.x && head.y === i.y;
-	      }).filter(function (i) {
-	        return i;
-	      }).length > 1; // Head and other on same
+	      // Head and other on same square
+	      var h = this.head();
+	      return this.body.filter(function (i) {
+	        return h.x === i.x && h.y === i.y;
+	      }).length > 1;
+	    }
+	  }, {
+	    key: 'isOn',
+	    value: function isOn(xBound, yBound) {
+	      return this.body.filter(function (i) {
+	        return i.x > xBound.max || i.x < xBound.min || i.y > yBound.max || i.y < yBound.min;
+	      }).length === 0;
 	    }
 	  }, {
 	    key: 'move',
@@ -267,14 +277,18 @@
 	    this.columns = columns;
 	    this.loopInterval = 100;
 	    this.plant();
+	    this.xBound = { min: 0, max: this.lines };
+	    this.yBound = { min: 0, max: this.columns };
 	  }
 
 	  _createClass(Board, [{
+	    key: "gameOver",
+	    value: function gameOver() {
+	      return this.snake.isBytingItself() || !this.snake.isOn(this.xBound, this.yBound);
+	    }
+	  }, {
 	    key: "tick",
 	    value: function tick() {
-	      this.gameOver = this.snake.bytingItself();
-
-	      if (this.gameOver) return;
 
 	      if (this.snake.found(this.food)) {
 	        this.snake.eat(this.food);
