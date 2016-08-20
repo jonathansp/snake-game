@@ -60,7 +60,30 @@
 
 	  var engine = new _engine2.default();
 	  engine.setUI(_browser2.default);
-	  engine.run();
+	  engine.run(function (data) {
+	    console.log("data", data);
+	    var head = data.snake[data.snake.length - 1];
+
+	    // Example code for looping the snake
+	    var move = '';
+	    if (data.snakeDirection === 'down') {
+	      if (head.x === data.xBound) move = 'right';
+	    }
+
+	    if (data.snakeDirection === 'right') {
+	      if (head.y === data.yBound) move = 'up';
+	    }
+
+	    if (data.snakeDirection === 'up') {
+	      if (head.x === 0) move = 'left';
+	    }
+
+	    if (data.snakeDirection === 'left') {
+	      if (head.y === 0) move = 'down';
+	    }
+
+	    return move;
+	  });
 
 	  document.body.addEventListener("keydown", function (event) {
 
@@ -107,8 +130,10 @@
 	  function Engine() {
 	    _classCallCheck(this, Engine);
 
-	    var snake = new _snake2.default();
-	    this.board = new _board2.default(50, 40, snake);
+	    this.snake = new _snake2.default();
+	    this.lines = 20;
+	    this.columns = 15;
+	    this.board = new _board2.default(this.lines, this.columns, this.snake);
 	    this.loopInterval = 100;
 	    this.ui = null;
 	  }
@@ -116,22 +141,34 @@
 	  _createClass(Engine, [{
 	    key: 'setUI',
 	    value: function setUI(BoardUIClass) {
-	      this.ui = new BoardUIClass(this.board);
+	      this.ui = new BoardUIClass();
 	    }
 	  }, {
 	    key: 'run',
-	    value: function run() {
+	    value: function run(onTick) {
 
+	      if (this.ui) this.ui.createTable(this.board);
 	      var self = this;
 
 	      var gameLoop = setInterval(function () {
+	        var move = onTick({
+	          xBound: self.lines,
+	          yBound: self.columns,
+	          food: { x: self.board.food.x, y: self.board.food.y },
+	          snake: self.board.snake.body.slice(),
+	          snakeDirection: self.board.snake.walkingTo
+	        });
+
+	        self.board.snake.to(move);
 	        self.board.tick();
+
 	        if (self.board.gameOver()) {
 	          clearInterval(gameLoop);
 	        }
-
 	        if (self.ui) {
-	          self.ui.draw();
+	          self.ui.clear();
+	          self.ui.draw(self.board.snake.body, 'snake-body');
+	          self.ui.draw([self.board.food], 'snake-food');
 	        }
 	      }, this.loopInterval);
 	    }
@@ -165,6 +202,7 @@
 	    ];
 
 	    this.walkingTo = 'down';
+	    this.movingStack = [];
 	  }
 
 	  _createClass(Snake, [{
@@ -172,7 +210,7 @@
 	    value: function to(direction) {
 
 	      if (this.isValidMove(direction)) {
-	        this.walkingTo = direction;
+	        this.movingStack.push(direction);
 	      }
 	    }
 	  }, {
@@ -228,6 +266,8 @@
 	  }, {
 	    key: 'move',
 	    value: function move() {
+	      console.log(this.movingStack);
+	      this.walkingTo = this.movingStack.pop() || this.walkingTo;
 
 	      this.body.shift();
 	      var head = this.head();
@@ -246,6 +286,9 @@
 	        case 'left':
 	          this.body.push({ x: head.x, y: --head.y });break;
 	      }
+	      console.log(this.body.reduce(function (a, i) {
+	        return a += i.x + "-" + i.y + "|";
+	      }, ""));
 	    }
 	  }]);
 
@@ -326,25 +369,22 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var BoardBrowserUI = function () {
-	  function BoardBrowserUI(board) {
+	  function BoardBrowserUI() {
 	    _classCallCheck(this, BoardBrowserUI);
-
-	    this.board = board;
-	    this.createTable();
 	  }
 
 	  _createClass(BoardBrowserUI, [{
 	    key: 'createTable',
-	    value: function createTable() {
+	    value: function createTable(board) {
 
 	      var table = document.createElement('table');
 	      table.setAttribute('width', 600);
 	      table.setAttribute('height', 600);
 	      table.setAttribute('border', 1);
 
-	      for (var line = 0; line <= this.board.lines; line++) {
+	      for (var line = 0; line <= board.lines; line++) {
 	        var tr = document.createElement('tr');
-	        for (var column = 0; column <= this.board.columns; column++) {
+	        for (var column = 0; column <= board.columns; column++) {
 
 	          var td = document.createElement('td');
 	          td.setAttribute('data-x', line);
@@ -359,12 +399,8 @@
 	      document.body.appendChild(table);
 	    }
 	  }, {
-	    key: 'draw',
-	    value: function draw() {
-	      if (this.board.gameOver) {
-	        alert("Game over!");
-	      }
-
+	    key: 'clear',
+	    value: function clear() {
 	      var _iteratorNormalCompletion = true;
 	      var _didIteratorError = false;
 	      var _iteratorError = undefined;
@@ -389,20 +425,23 @@
 	          }
 	        }
 	      }
-
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw(gameObject, name) {
 	      var _iteratorNormalCompletion2 = true;
 	      var _didIteratorError2 = false;
 	      var _iteratorError2 = undefined;
 
 	      try {
-	        for (var _iterator2 = this.board.snake.body[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	        for (var _iterator2 = gameObject[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
 	          var square = _step2.value;
 
 
-	          var _x = '[data-x="' + square.x + '"]';
-	          var _y = '[data-y="' + square.y + '"]';
-	          var bodyItem = document.querySelector('td' + _x + _y);
-	          bodyItem.className = 'snake-body';
+	          var x = '[data-x="' + square.x + '"]';
+	          var y = '[data-y="' + square.y + '"]';
+	          var bodyItem = document.querySelector('td' + x + y);
+	          bodyItem.className = name;
 	        }
 	      } catch (err) {
 	        _didIteratorError2 = true;
@@ -418,11 +457,6 @@
 	          }
 	        }
 	      }
-
-	      var x = '[data-x="' + this.board.food.x + '"]';
-	      var y = '[data-y="' + this.board.food.y + '"]';
-	      var foodItem = document.querySelector('td' + x + y);
-	      foodItem.className = 'snake-food';
 	    }
 	  }]);
 
