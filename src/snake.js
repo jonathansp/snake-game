@@ -70,7 +70,7 @@ class Snake {
   }
 
   move () {
-
+    console.log(this.movingStack);
     this.walkingTo = this.movingStack.pop() || this.walkingTo;
 
     this.body.shift();
@@ -90,6 +90,7 @@ class Snake {
       case 'left':
         this.body.push( { x: head.x, y: --head.y } );  break;
     }
+    console.log(this.body.reduce((a, i) => a += i.x + "-" + i.y + "|", ""));
   }
 }
 
