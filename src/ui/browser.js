@@ -2,11 +2,13 @@
 class BoardBrowserUI {
 
   createTable (board) {
+    if (this.table) return;
 
-    const table = document.createElement('table');
-    table.setAttribute('width', 600);
-    table.setAttribute('height', 600);
-    table.setAttribute('border', 1);
+    this.table = document.createElement('table');
+    this.table.setAttribute('id', 'snake-board');
+    this.table.setAttribute('width', 600);
+    this.table.setAttribute('height', 600);
+    this.table.setAttribute('border', 1);
 
     for (let line = 0; line <= board.lines; line++) {
       let tr = document.createElement('tr');
@@ -20,10 +22,10 @@ class BoardBrowserUI {
 
       }
 
-      table.appendChild(tr);
+      this.table.appendChild(tr);
     }
 
-    document.body.appendChild(table);
+    document.body.appendChild(this.table);
   }
 
   clear () {

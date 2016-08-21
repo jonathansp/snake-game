@@ -56,51 +56,30 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+	var engine = new _engine2.default();
+
+	var evalMoveDecision = function evalMoveDecision() {
+	  var code = document.body.querySelector('#code').value;
+	  var func = function func() {
+	    return "";
+	  };
+	  eval("func = " + code);
+	  return func;
+	};
+
 	function main() {
 
-	  var engine = new _engine2.default();
-	  engine.setUI(_browser2.default);
-	  engine.run(function (data) {
-	    console.log("data", data);
-	    var head = data.snake[data.snake.length - 1];
-
-	    // Example code for looping the snake
-	    var move = '';
-	    if (data.snakeDirection === 'down') {
-	      if (head.x === data.xBound) move = 'right';
-	    }
-
-	    if (data.snakeDirection === 'right') {
-	      if (head.y === data.yBound) move = 'up';
-	    }
-
-	    if (data.snakeDirection === 'up') {
-	      if (head.x === 0) move = 'left';
-	    }
-
-	    if (data.snakeDirection === 'left') {
-	      if (head.y === 0) move = 'down';
-	    }
-
-	    return move;
-	  });
-
-	  document.body.addEventListener("keydown", function (event) {
-
-	    switch (event.keyCode) {
-	      case 40:
-	        engine.board.snake.to('down');break;
-	      case 38:
-	        engine.board.snake.to('up');break;
-	      case 39:
-	        engine.board.snake.to('right');break;
-	      case 37:
-	        engine.board.snake.to('left');break;
-	    }
-	  });
+	  engine.setUI(new _browser2.default());
+	  engine.onMove = evalMoveDecision();
+	  engine.run();
 	}
 
 	main();
+
+	window.apply = function () {
+	  engine.onMove = evalMoveDecision();
+	  engine.restart();
+	};
 
 /***/ },
 /* 1 */
@@ -130,40 +109,48 @@
 	  function Engine() {
 	    _classCallCheck(this, Engine);
 
-	    this.snake = new _snake2.default();
+	    var snake = new _snake2.default();
 	    this.lines = 20;
 	    this.columns = 15;
-	    this.board = new _board2.default(this.lines, this.columns, this.snake);
+	    this.board = new _board2.default(this.lines, this.columns, snake);
 	    this.loopInterval = 100;
 	    this.ui = null;
 	  }
 
 	  _createClass(Engine, [{
 	    key: 'setUI',
-	    value: function setUI(BoardUIClass) {
-	      this.ui = new BoardUIClass();
+	    value: function setUI(boardUIClass) {
+	      this.ui = boardUIClass;
 	    }
 	  }, {
 	    key: 'run',
-	    value: function run(onTick) {
+	    value: function run() {
 
 	      if (this.ui) this.ui.createTable(this.board);
 	      var self = this;
 
-	      var gameLoop = setInterval(function () {
-	        var move = onTick({
-	          xBound: self.lines,
-	          yBound: self.columns,
-	          food: { x: self.board.food.x, y: self.board.food.y },
-	          snake: self.board.snake.body.slice(),
-	          snakeDirection: self.board.snake.walkingTo
-	        });
+	      this.gameLoop = setInterval(function () {
+	        var context = {
+	          bound: {
+	            x: self.lines,
+	            y: self.columns
+	          },
+	          food: {
+	            x: self.board.food.x,
+	            y: self.board.food.y
+	          },
+	          snake: {
+	            body: self.board.snake.body.slice(),
+	            direction: self.board.snake.walkingTo
+	          }
+	        };
 
-	        self.board.snake.to(move);
+	        var direction = self.onMove.call(context); // avoid expose the engine!
+	        self.board.snake.to(direction);
 	        self.board.tick();
 
 	        if (self.board.gameOver()) {
-	          clearInterval(gameLoop);
+	          self.stop();
 	        }
 	        if (self.ui) {
 	          self.ui.clear();
@@ -172,10 +159,27 @@
 	        }
 	      }, this.loopInterval);
 	    }
+	  }, {
+	    key: 'stop',
+	    value: function stop() {
+	      if (this.gameLoop) clearInterval(this.gameLoop);
+	    }
+	  }, {
+	    key: 'restart',
+	    value: function restart() {
+	      if (this.ui) this.ui.clear();
+	      this.stop();
+	      this.board.snake = new _snake2.default();
+	      this.run();
+	    }
 	  }]);
 
 	  return Engine;
 	}();
+
+	function delegate(data) {
+	  return engine.onMove(data);
+	}
 
 	exports.default = Engine;
 
@@ -376,11 +380,13 @@
 	  _createClass(BoardBrowserUI, [{
 	    key: 'createTable',
 	    value: function createTable(board) {
+	      if (this.table) return;
 
-	      var table = document.createElement('table');
-	      table.setAttribute('width', 600);
-	      table.setAttribute('height', 600);
-	      table.setAttribute('border', 1);
+	      this.table = document.createElement('table');
+	      this.table.setAttribute('id', 'snake-board');
+	      this.table.setAttribute('width', 600);
+	      this.table.setAttribute('height', 600);
+	      this.table.setAttribute('border', 1);
 
 	      for (var line = 0; line <= board.lines; line++) {
 	        var tr = document.createElement('tr');
@@ -393,10 +399,10 @@
 	          tr.appendChild(td);
 	        }
 
-	        table.appendChild(tr);
+	        this.table.appendChild(tr);
 	      }
 
-	      document.body.appendChild(table);
+	      document.body.appendChild(this.table);
 	    }
 	  }, {
 	    key: 'clear',
