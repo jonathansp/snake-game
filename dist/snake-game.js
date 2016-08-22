@@ -60,10 +60,7 @@
 
 	var evalMoveDecision = function evalMoveDecision() {
 	  var code = document.body.querySelector('#code').value;
-	  var func = function func() {
-	    return "";
-	  };
-	  eval("func = " + code);
+	  var func = new Function("return (" + code + ")(this)");
 	  return func;
 	};
 

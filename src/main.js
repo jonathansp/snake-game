@@ -5,8 +5,7 @@ const engine = new Engine();
 
 let evalMoveDecision = function () {
   let code = document.body.querySelector('#code').value;
-  let func = () => "";
-  eval("func = " + code);
+  let func = new Function("return (" + code + ")(this)");
   return func;
 }
 
