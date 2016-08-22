@@ -12,13 +12,12 @@ class Snake {
     ];
 
     this.walkingTo = 'down';
-    this.movingStack = [];
   }
 
   to (direction) {
 
     if (this.isValidMove(direction) ) {
-      this.movingStack.push(direction);
+        this.walkingTo = direction;
     }
   }
 
@@ -61,18 +60,9 @@ class Snake {
     return this.body.filter((i) => h.x === i.x && h.y === i.y).length > 1
   }
 
-  isOn(xBound, yBound) {
-    return this.body
-               .filter((i) => i.x > xBound.max ||
-                              i.x < xBound.min ||
-                              i.y > yBound.max ||
-                              i.y < yBound.min).length === 0;
-  }
 
   move () {
-    console.log(this.movingStack);
-    this.walkingTo = this.movingStack.pop() || this.walkingTo;
-
+ 
     this.body.shift();
     const head = this.head();
 
@@ -90,7 +80,6 @@ class Snake {
       case 'left':
         this.body.push( { x: head.x, y: --head.y } );  break;
     }
-    console.log(this.body.reduce((a, i) => a += i.x + "-" + i.y + "|", ""));
   }
 }
 

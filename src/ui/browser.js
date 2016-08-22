@@ -1,18 +1,23 @@
-
 class BoardBrowserUI {
 
-  createTable (board) {
-    if (this.table) return;
+  constructor() {
+    this.table = null;
 
+  }
+
+  createTable (boundaries) {
+
+
+    
     this.table = document.createElement('table');
     this.table.setAttribute('id', 'snake-board');
     this.table.setAttribute('width', 600);
     this.table.setAttribute('height', 600);
     this.table.setAttribute('border', 1);
 
-    for (let line = 0; line <= board.lines; line++) {
+    for (let line = 0; line <= boundaries.x.max; line++) {
       let tr = document.createElement('tr');
-      for (let column = 0; column <= board.columns; column++) {
+      for (let column = 0; column <= boundaries.y.max; column++) {
 
         let td = document.createElement('td');
         td.setAttribute('data-x', line);
@@ -34,14 +39,26 @@ class BoardBrowserUI {
     }
   }
 
-  draw (gameObject, name) {
-    for (let square of gameObject) {
+  drawSquare (square, name) {
 
-      let x = '[data-x="' + square.x + '"]';
-      let y = '[data-y="' + square.y + '"]';
-      let bodyItem = document.querySelector('td' + x + y);
-      bodyItem.className = name;
+    let x = '[data-x="' + square.x + '"]';
+    let y = '[data-y="' + square.y + '"]';
+    let item = document.querySelector('td' + x + y);
+    item.className = name;
+
+  }
+
+  render (state) {
+
+    if (!this.table) this.createTable(state.boundaries);
+
+    this.clear();
+
+    for (let square of state.snake.body) {
+      this.drawSquare(square, 'snake-body');
     }
+
+    this.drawSquare(state.food, 'snake-food');
 
   }
 

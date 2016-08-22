@@ -37,29 +37,35 @@
       <button id="apply" onclick="apply()">Aplicar</button>
       <label>Example of code</label>
       <textarea id="code">
-function moveDecision(data) {
-  const head = data.snake.body[data.snake.body.length-1];
 
-  let move = ''
-  if (data.snake.direction === 'down'){
-    if (head.x === data.bound.x) move = 'right';
-  }
 
-  if (data.snake.direction === 'right') {
-    if (head.y === data.bound.y) move = 'up';
-  }
 
-  if (data.snake.direction === 'up') {
-    if(head.x === 0) move = 'left';
-  }
+class Player {
+  
+    move(data) {
 
-  if (data.snake.direction === 'left') {
-    if(head.y === 0) move = 'down';
-  }
+      const head = data.snake.body[data.snake.body.length-1];
 
-  console.log("context", data);
+      let move = data.snake.direction;
 
-  return move;
+      if (data.snake.direction === 'down'){
+        if (head.x === data.boundaries.x.max) move = 'right';
+      }
+
+      if (data.snake.direction === 'right') {
+        if (head.y === data.boundaries.y.max) move = 'up';
+      }
+
+      if (data.snake.direction === 'up') {
+        if(head.x === 0) move = 'left';
+      }
+
+      if (data.snake.direction === 'left') {
+        if(head.y === 0) move = 'down';
+      }
+
+      return move;
+    }
 }
   </textarea>
 </div>
