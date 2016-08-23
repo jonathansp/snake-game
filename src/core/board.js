@@ -5,8 +5,8 @@ class Board {
     this.lines = lines || 30;
     this.columns = columns || 30;
     this.boundaries = {
-          x: { min: 0, max: this.lines},
-          y: { min: 0, max: this.columns}
+          x: { min: 0, max: this.lines - 1 },
+          y: { min: 0, max: this.columns - 1 }
     }
   }
 

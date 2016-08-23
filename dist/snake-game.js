@@ -8799,233 +8799,196 @@
 
 	'use strict';
 
-	var _vmShim = __webpack_require__(300);
+	var _vm = __webpack_require__(300);
 
-	var _vmShim2 = _interopRequireDefault(_vmShim);
+	var _vm2 = _interopRequireDefault(_vm);
 
-	var _game = __webpack_require__(301);
+	var _game = __webpack_require__(302);
 
 	var _game2 = _interopRequireDefault(_game);
 
-	var _engine = __webpack_require__(302);
+	var _engine = __webpack_require__(303);
 
 	var _engine2 = _interopRequireDefault(_engine);
 
-	var _browser = __webpack_require__(306);
+	var _browser = __webpack_require__(307);
 
 	var _browser2 = _interopRequireDefault(_browser);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var game = new _game2.default(_vmShim2.default, code);
-	game.onMove = function (context) {
-	  return ui.render(context);
-	};
-
+	var game = new _game2.default(_vm2.default);
 	var ui = new _browser2.default();
 
-	window.apply = function () {
-	  var code = document.body.querySelector('#code').value;
+	game.onMove = function (context) {
+	    return ui.render(context);
+	};
 
-	  game.stop();
-	  game.setCode(code);
-	  game.run(50);
+	window.apply = function () {
+	    var code = document.body.querySelector('#code').value;
+
+	    game.stop();
+	    game.run(code);
 	};
 
 /***/ },
 /* 300 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
+	'use strict';
 
-	// vm-shim.js
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-	(function (vm, undefined) {
+	var indexOf = __webpack_require__(301);
 
-	  if (typeof global == 'undefined' && window) {
+	var Object_keys = function Object_keys(obj) {
+	    if (Object.keys) return Object.keys(obj);else {
+	        var res = [];
+	        for (var key in obj) {
+	            res.push(key);
+	        }return res;
+	    }
+	};
 
-	    // bit from substack's iframe based vm-browserify at
-	    // https://github.com/substack/vm-browserify/blob/master/index.js#L37-40
-	    if (!window.eval && window.execScript) {
-	      // win.eval() magically appears when this is called in IE:
-	      window.execScript('null');
+	var forEach = function forEach(xs, fn) {
+	    if (xs.forEach) return xs.forEach(fn);else for (var i = 0; i < xs.length; i++) {
+	        fn(xs[i], i, xs);
+	    }
+	};
+
+	var defineProp = function () {
+	    try {
+	        Object.defineProperty({}, '_', {});
+	        return function (obj, name, value) {
+	            Object.defineProperty(obj, name, {
+	                writable: true,
+	                enumerable: false,
+	                configurable: true,
+	                value: value
+	            });
+	        };
+	    } catch (e) {
+	        return function (obj, name, value) {
+	            obj[name] = value;
+	        };
+	    }
+	}();
+
+	var globals = ['Array', 'Boolean', 'Date', 'Error', 'EvalError', 'Function', 'Infinity', 'JSON', 'Math', 'NaN', 'Number', 'Object', 'RangeError', 'ReferenceError', 'RegExp', 'String', 'SyntaxError', 'TypeError', 'URIError', 'decodeURI', 'decodeURIComponent', 'encodeURI', 'encodeURIComponent', 'escape', 'eval', 'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'undefined', 'unescape'];
+
+	function Context() {}
+	Context.prototype = {};
+
+	var Script = exports.Script = function NodeScript(code) {
+	    if (!(this instanceof Script)) return new Script(code);
+	    this.code = code;
+	};
+
+	Script.prototype.runInContext = function (context) {
+	    if (!(context instanceof Context)) {
+	        throw new TypeError("needs a 'context' argument.");
 	    }
 
-	    global = window;
-	  }
+	    var iframe = document.createElement('iframe');
+	    if (!iframe.style) iframe.style = {};
+	    iframe.style.display = 'none';
 
-	  vm = {
-	    runInContext: runInContext,
-	    runInNewContext: runInNewContext,
-	    runInThisContext: runInThisContext
-	  };
+	    document.body.appendChild(iframe);
 
-	  if (true) {
-	    module.exports = vm;
-	  } else {
-	    global.vm = vm;
-	  }
+	    var win = iframe.contentWindow;
+	    var wEval = win.eval,
+	        wExecScript = win.execScript;
 
-	  // src may be a string or a function
-	  // context is a config object of properties to be used as vars inside the new scope
-	  function runInContext(src, context /*, filename*/) {
-
-	    var code = '';
-
-	    // before - set local scope vars from each context property
-	    for (var key in context) {
-	      if (context.hasOwnProperty(key)) {
-	        code += 'var ' + key + ' = context[\'' + key + '\'];\n';
-	      }
+	    if (!wEval && wExecScript) {
+	        // win.eval() magically appears when this is called in IE:
+	        wExecScript.call(win, 'null');
+	        wEval = win.eval;
 	    }
 
-	    typeof src == 'string' || (src = '(' + src.toString() + '())');
-
-	    code += src + ';\n';
-
-	    // after - scoop changes back into context
-	    for (var key in context) {
-	      if (context.hasOwnProperty(key)) {
-	        code += 'context[\'' + key + '\'] = ' + key + ';\n';
-	      }
-	    }
-
-	    return sandbox(function () {
-	      Function('context', code).call(null, context);
-	      return context;
+	    forEach(Object_keys(context), function (key) {
+	        win[key] = context[key];
 	    });
-	  }
-
-	  // param src - may be a string or a function
-	  // param context - config object of properties to be used as vars inside the new scope  
-	  function runInNewContext(src, context /*, filename*/) {
-
-	    context = context || {};
-
-	    // Object.create shim to shadow out the main global
-	    function F() {}
-	    F.prototype = typeof Window != 'undefined' && Window.prototype || global;
-	    context.global = new F();
-
-	    // This statement resets vm references in the new sandbox:
-	    // + fixes browser reference if vm is not passed in (so we don't provide it)
-	    // + fixes node.js reference if vm is passed in (make it available to new global)
-	    context.global.vm = context.vm = context.vm;
-
-	    return runInContext(src, context /*, filename*/);
-	  }
-
-	  // src may be a string or a function
-	  function runInThisContext(src /*, filename*/) {
-
-	    var code = src;
-
-	    if (typeof src == 'function') {
-	      code = src.toString();
-	      code = code.substring(code.indexOf('{') + 1, code.lastIndexOf('}') - 1);
-	    }
-
-	    return sandbox(function () {
-	      return eval(code);
+	    forEach(globals, function (key) {
+	        if (context[key]) {
+	            win[key] = context[key];
+	        }
 	    });
-	  }
 
-	  // method sandbox - helper function for scrubbing "accidental" un-var'd globals after 
-	  // eval() and Function() calls. 
-	  // + Inconveniently, eval() and Function() don't take functions as arguments.  
-	  // + eval() leaks un-var'd symbols in browser & node.js.
-	  // + indirect eval() leaks ALL vars globally, i.e., where var e = eval; e('var a = 7'); 
-	  //   'a' becomes global, thus, defeating the purpose.
-	  function sandbox(fn) {
+	    var winKeys = Object_keys(win);
 
-	    var keys = {};
+	    var res = wEval.call(win, this.code);
 
-	    for (var k in global) {
-	      keys[k] = k;
+	    forEach(Object_keys(win), function (key) {
+	        // Avoid copying circular objects like `top` and `window` by only
+	        // updating existing context properties or new properties in the `win`
+	        // that was only introduced after the eval.
+	        if (key in context || indexOf(winKeys, key) === -1) {
+	            context[key] = win[key];
+	        }
+	    });
+
+	    forEach(globals, function (key) {
+	        if (!(key in context)) {
+	            defineProp(context, key, win[key]);
+	        }
+	    });
+
+	    document.body.removeChild(iframe);
+
+	    return res;
+	};
+
+	Script.prototype.runInThisContext = function () {
+	    return eval(this.code); // maybe...
+	};
+
+	Script.prototype.runInNewContext = function (context) {
+	    var ctx = Script.createContext(context);
+	    var res = this.runInContext(ctx);
+
+	    forEach(Object_keys(ctx), function (key) {
+	        context[key] = ctx[key];
+	    });
+
+	    return res;
+	};
+
+	forEach(Object_keys(Script.prototype), function (name) {
+	    exports[name] = Script[name] = function (code) {
+	        var s = Script(code);
+	        return s[name].apply(s, [].slice.call(arguments, 1));
+	    };
+	});
+
+	exports.createScript = function (code) {
+	    return exports.Script(code);
+	};
+
+	exports.createContext = Script.createContext = function (context) {
+	    var copy = new Context();
+	    if ((typeof context === 'undefined' ? 'undefined' : _typeof(context)) === 'object') {
+	        forEach(Object_keys(context), function (key) {
+	            copy[key] = context[key];
+	        });
 	    }
-
-	    var result = fn();
-
-	    for (var k in global) {
-	      if (!(k in keys)) {
-	        delete global[k];
-	      }
-	    }
-
-	    return result;
-	  }
-	})();
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+	    return copy;
+	};
 
 /***/ },
 /* 301 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	'use strict';
+	"use strict";
 
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
+	var indexOf = [].indexOf;
 
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _engine = __webpack_require__(302);
-
-	var _engine2 = _interopRequireDefault(_engine);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var Game = function () {
-		function Game(vm) {
-			_classCallCheck(this, Game);
-
-			this.sandbox = { direction: null };
-			this.vm = vm;
-
-			this.engine = null;
-			this.onMove = function () {};
-		}
-
-		_createClass(Game, [{
-			key: 'setCode',
-			value: function setCode(code) {
-
-				var playerEvaluation = { player: null };
-				this.vm.runInContext(code + '; player = new Player();', playerEvaluation);
-				this.sandbox.player = playerEvaluation.player; // clone?
-			}
-		}, {
-			key: 'run',
-			value: function run(interval) {
-				var _this = this;
-
-				this.engine = new _engine2.default();
-				this.gameLoop = setInterval(function () {
-
-					if (!_this.engine.isGameOver()) {
-
-						_this.sandbox.gameContext = _this.engine.getContext(); // clone ?
-						_this.vm.runInContext('direction = player.move(gameContext)', _this.sandbox);
-						_this.engine.snakeCrawl(_this.sandbox.direction);
-						_this.onMove(_this.engine.getContext());
-					}
-				}, interval);
-			}
-		}, {
-			key: 'stop',
-			value: function stop() {
-				if (this.gameLoop) {
-					clearInterval(this.gameLoop);
-				}
-			}
-		}]);
-
-		return Game;
-	}();
-
-	exports.default = Game;
+	module.exports = function (arr, obj) {
+	  if (indexOf) return arr.indexOf(obj);
+	  for (var i = 0; i < arr.length; ++i) {
+	    if (arr[i] === obj) return i;
+	  }
+	  return -1;
+	};
 
 /***/ },
 /* 302 */
@@ -9034,20 +8997,97 @@
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-	  value: true
+	    value: true
 	});
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _snake = __webpack_require__(303);
+	var _engine = __webpack_require__(303);
+
+	var _engine2 = _interopRequireDefault(_engine);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var Game = function () {
+	    function Game(vm) {
+	        _classCallCheck(this, Game);
+
+	        this.vm = vm;
+
+	        this.sandbox = {};
+	        this.vm.createContext(this.sandbox);
+
+	        this.engine = null;
+	        this.onMove = function () {};
+	    }
+
+	    _createClass(Game, [{
+	        key: 'setCode',
+	        value: function setCode(code) {
+
+	            var playerEvaluation = {};
+	            this.vm.createContext(playerEvaluation);
+	            this.vm.runInNewContext(code + '; player = new Player();', playerEvaluation);
+	            this.sandbox.player = playerEvaluation.player; // clone?
+	        }
+	    }, {
+	        key: 'run',
+	        value: function run(code) {
+	            var _this = this;
+
+	            var interval = arguments.length <= 1 || arguments[1] === undefined ? 50 : arguments[1];
+
+
+	            this.setCode(code);
+
+	            this.engine = new _engine2.default();
+	            this.gameLoop = setInterval(function () {
+
+	                if (!_this.engine.isGameOver()) {
+
+	                    _this.sandbox.gameContext = _this.engine.getContext(); // clone ?
+	                    _this.vm.runInNewContext('direction = player.move(gameContext)', _this.sandbox);
+	                    _this.engine.snakeCrawl(_this.sandbox.direction);
+	                    _this.onMove(_this.engine.getContext());
+	                }
+	            }, interval);
+	        }
+	    }, {
+	        key: 'stop',
+	        value: function stop() {
+
+	            if (this.gameLoop) clearInterval(this.gameLoop);
+	        }
+	    }]);
+
+	    return Game;
+	}();
+
+	exports.default = Game;
+
+/***/ },
+/* 303 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _snake = __webpack_require__(304);
 
 	var _snake2 = _interopRequireDefault(_snake);
 
-	var _board = __webpack_require__(304);
+	var _board = __webpack_require__(305);
 
 	var _board2 = _interopRequireDefault(_board);
 
-	var _feeder = __webpack_require__(305);
+	var _feeder = __webpack_require__(306);
 
 	var _feeder2 = _interopRequireDefault(_feeder);
 
@@ -9056,66 +9096,66 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var Engine = function () {
-	  function Engine(options) {
-	    _classCallCheck(this, Engine);
+	    function Engine(options) {
+	        _classCallCheck(this, Engine);
 
-	    this.snake = new _snake2.default();
-	    this.board = new _board2.default();
+	        this.snake = new _snake2.default();
+	        this.board = new _board2.default();
 
-	    this.feeder = new _feeder2.default(this.board.boundaries);
-	  }
-
-	  _createClass(Engine, [{
-	    key: 'snakeCrawl',
-	    value: function snakeCrawl(direction) {
-
-	      this.snake.to(direction);
-
-	      if (this.snake.found(this.feeder.food)) {
-
-	        this.snake.eat(this.feeder.food);
-	        this.feeder.plant();
-	      }
-
-	      this.snake.move();
+	        this.feeder = new _feeder2.default(this.board.boundaries);
 	    }
-	  }, {
-	    key: 'isGameOver',
-	    value: function isGameOver() {
 
-	      return this.snake.isBytingItself() || !this.board.has(this.snake.head());
-	    }
-	  }, {
-	    key: 'getContext',
-	    value: function getContext() {
+	    _createClass(Engine, [{
+	        key: 'snakeCrawl',
+	        value: function snakeCrawl(direction) {
 
-	      var context = {
-	        boundaries: this.board.boundaries,
-	        food: this.feeder.food,
-	        snake: {
-	          body: this.snake.body,
-	          direction: this.snake.walkingTo
+	            this.snake.to(direction);
+
+	            if (this.snake.found(this.feeder.food)) {
+
+	                this.snake.eat(this.feeder.food);
+	                this.feeder.plant();
+	            }
+
+	            this.snake.move();
 	        }
+	    }, {
+	        key: 'isGameOver',
+	        value: function isGameOver() {
 
-	      };
+	            return this.snake.isBytingItself() || !this.board.has(this.snake.head());
+	        }
+	    }, {
+	        key: 'getContext',
+	        value: function getContext() {
 
-	      return context;
-	    }
-	  }]);
+	            var context = {
+	                boundaries: this.board.boundaries,
+	                food: this.feeder.food,
+	                snake: {
+	                    body: this.snake.body,
+	                    direction: this.snake.walkingTo
+	                }
 
-	  return Engine;
+	            };
+
+	            return context;
+	        }
+	    }]);
+
+	    return Engine;
 	}();
 
 	exports.default = Engine;
 
 /***/ },
-/* 303 */
+/* 304 */
 /***/ function(module, exports) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-	  value: true
+	    value: true
 	});
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -9123,98 +9163,102 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var Snake = function () {
-	  function Snake() {
-	    _classCallCheck(this, Snake);
+	    function Snake() {
+	        _classCallCheck(this, Snake);
 
-	    this.body = [{ x: 0, y: 0 }, // <- TAIL
-	    { x: 1, y: 0 }, { x: 2, y: 0 }, { x: 3, y: 0 } // <- HEAD
-	    ];
+	        this.body = [{ x: 0, y: 0 }, // <- TAIL
+	        { x: 1, y: 0 }, { x: 2, y: 0 }, { x: 3, y: 0 } // <- HEAD
+	        ];
 
-	    this.walkingTo = 'down';
-	  }
-
-	  _createClass(Snake, [{
-	    key: 'to',
-	    value: function to(direction) {
-
-	      if (this.isValidMove(direction)) {
-	        this.walkingTo = direction;
-	      }
+	        this.walkingTo = 'down';
 	    }
-	  }, {
-	    key: 'isValidMove',
-	    value: function isValidMove(direction) {
 
-	      return !(direction === 'right' && this.walkingTo === 'left' || direction === 'left' && this.walkingTo === 'right' || direction === 'up' && this.walkingTo === 'down' || direction === 'down' && this.walkingTo === 'up');
-	    }
-	  }, {
-	    key: 'head',
-	    value: function head() {
+	    _createClass(Snake, [{
+	        key: 'to',
+	        value: function to(direction) {
 
-	      var head = this.body[this.body.length - 1];
-	      return JSON.parse(JSON.stringify(head)); // clone object
-	    }
-	  }, {
-	    key: 'tail',
-	    value: function tail() {
+	            if (this.isValidMove(direction)) {
+	                this.walkingTo = direction;
+	            }
+	        }
+	    }, {
+	        key: 'isValidMove',
+	        value: function isValidMove(direction) {
 
-	      var tail = this.body[0];
-	      return JSON.parse(JSON.stringify(tail)); // clone object
-	    }
-	  }, {
-	    key: 'found',
-	    value: function found(food) {
+	            return !(direction === 'right' && this.walkingTo === 'left' || direction === 'left' && this.walkingTo === 'right' || direction === 'up' && this.walkingTo === 'down' || direction === 'down' && this.walkingTo === 'up');
+	        }
+	    }, {
+	        key: 'head',
+	        value: function head() {
 
-	      var head = this.head();
-	      return head.x === food.x && head.y === food.y;
-	    }
-	  }, {
-	    key: 'eat',
-	    value: function eat(food) {
+	            var head = this.body[this.body.length - 1];
+	            return JSON.parse(JSON.stringify(head)); // clone object
+	        }
+	    }, {
+	        key: 'tail',
+	        value: function tail() {
 
-	      this.body.unshift(this.tail());
-	    }
-	  }, {
-	    key: 'isBytingItself',
-	    value: function isBytingItself() {
+	            var tail = this.body[0];
+	            return JSON.parse(JSON.stringify(tail)); // clone object
+	        }
+	    }, {
+	        key: 'found',
+	        value: function found(food) {
 
-	      // Head and other on same square
-	      var h = this.head();
-	      return this.body.filter(function (i) {
-	        return h.x === i.x && h.y === i.y;
-	      }).length > 1;
-	    }
-	  }, {
-	    key: 'move',
-	    value: function move() {
+	            var head = this.head();
+	            return head.x === food.x && head.y === food.y;
+	        }
+	    }, {
+	        key: 'eat',
+	        value: function eat(food) {
 
-	      this.body.shift();
-	      var head = this.head();
+	            this.body.unshift(this.tail());
+	        }
+	    }, {
+	        key: 'isBytingItself',
+	        value: function isBytingItself() {
 
-	      switch (this.walkingTo) {
+	            // Head and other on same square
+	            var h = this.head();
+	            return this.body.filter(function (i) {
+	                return h.x === i.x && h.y === i.y;
+	            }).length > 1;
+	        }
+	    }, {
+	        key: 'move',
+	        value: function move() {
 
-	        case 'down':
-	          this.body.push({ x: ++head.x, y: head.y });break;
+	            this.body.shift();
+	            var head = this.head();
 
-	        case 'up':
-	          this.body.push({ x: --head.x, y: head.y });break;
+	            switch (this.walkingTo) {
 
-	        case 'right':
-	          this.body.push({ x: head.x, y: ++head.y });break;
+	                case 'down':
+	                    this.body.push({ x: ++head.x, y: head.y });
+	                    break;
 
-	        case 'left':
-	          this.body.push({ x: head.x, y: --head.y });break;
-	      }
-	    }
-	  }]);
+	                case 'up':
+	                    this.body.push({ x: --head.x, y: head.y });
+	                    break;
 
-	  return Snake;
+	                case 'right':
+	                    this.body.push({ x: head.x, y: ++head.y });
+	                    break;
+
+	                case 'left':
+	                    this.body.push({ x: head.x, y: --head.y });
+	                    break;
+	            }
+	        }
+	    }]);
+
+	    return Snake;
 	}();
 
 	exports.default = Snake;
 
 /***/ },
-/* 304 */
+/* 305 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -9234,8 +9278,8 @@
 	    this.lines = lines || 30;
 	    this.columns = columns || 30;
 	    this.boundaries = {
-	      x: { min: 0, max: this.lines },
-	      y: { min: 0, max: this.columns }
+	      x: { min: 0, max: this.lines - 1 },
+	      y: { min: 0, max: this.columns - 1 }
 	    };
 	  }
 
@@ -9253,13 +9297,13 @@
 	exports.default = Board;
 
 /***/ },
-/* 305 */
+/* 306 */
 /***/ function(module, exports) {
 
 	"use strict";
 
 	Object.defineProperty(exports, "__esModule", {
-		value: true
+	    value: true
 	});
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -9267,37 +9311,37 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var Feeder = function () {
-		function Feeder(boundaries) {
-			_classCallCheck(this, Feeder);
+	    function Feeder(boundaries) {
+	        _classCallCheck(this, Feeder);
 
-			this.lines = boundaries.x.max;
-			this.columns = boundaries.y.max;
-			this.plant();
-		}
+	        this.lines = boundaries.x.max;
+	        this.columns = boundaries.y.max;
+	        this.plant();
+	    }
 
-		_createClass(Feeder, [{
-			key: "plant",
-			value: function plant(lines, columns) {
+	    _createClass(Feeder, [{
+	        key: "plant",
+	        value: function plant(lines, columns) {
 
-				var x = Math.floor(Math.random() * this.lines) + 0;
-				var y = Math.floor(Math.random() * this.columns) + 0;
-				this.food = { x: x, y: y };
-			}
-		}]);
+	            var x = Math.floor(Math.random() * this.lines) + 0;
+	            var y = Math.floor(Math.random() * this.columns) + 0;
+	            this.food = { x: x, y: y };
+	        }
+	    }]);
 
-		return Feeder;
+	    return Feeder;
 	}();
 
 	exports.default = Feeder;
 
 /***/ },
-/* 306 */
+/* 307 */
 /***/ function(module, exports) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-	  value: true
+	    value: true
 	});
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -9305,113 +9349,113 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var BoardBrowserUI = function () {
-	  function BoardBrowserUI() {
-	    _classCallCheck(this, BoardBrowserUI);
+	    function BoardBrowserUI() {
+	        _classCallCheck(this, BoardBrowserUI);
 
-	    this.table = null;
-	  }
-
-	  _createClass(BoardBrowserUI, [{
-	    key: 'createTable',
-	    value: function createTable(boundaries) {
-
-	      this.table = document.createElement('table');
-	      this.table.setAttribute('id', 'snake-board');
-	      this.table.setAttribute('width', 600);
-	      this.table.setAttribute('height', 600);
-	      this.table.setAttribute('border', 1);
-
-	      for (var line = 0; line <= boundaries.x.max; line++) {
-	        var tr = document.createElement('tr');
-	        for (var column = 0; column <= boundaries.y.max; column++) {
-
-	          var td = document.createElement('td');
-	          td.setAttribute('data-x', line);
-	          td.setAttribute('data-y', column);
-	          td.setAttribute('data-coordinate', '');
-	          tr.appendChild(td);
-	        }
-
-	        this.table.appendChild(tr);
-	      }
-
-	      document.body.appendChild(this.table);
+	        this.table = null;
 	    }
-	  }, {
-	    key: 'clear',
-	    value: function clear() {
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
 
-	      try {
-	        for (var _iterator = document.querySelectorAll('td')[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var td = _step.value;
+	    _createClass(BoardBrowserUI, [{
+	        key: 'createTable',
+	        value: function createTable(boundaries) {
 
-	          td.className = '';
+	            this.table = document.createElement('table');
+	            this.table.setAttribute('id', 'snake-board');
+	            this.table.setAttribute('width', 600);
+	            this.table.setAttribute('height', 600);
+	            this.table.setAttribute('border', 1);
+
+	            for (var line = 0; line <= boundaries.x.max; line++) {
+	                var tr = document.createElement('tr');
+	                for (var column = 0; column <= boundaries.y.max; column++) {
+
+	                    var td = document.createElement('td');
+	                    td.setAttribute('data-x', line);
+	                    td.setAttribute('data-y', column);
+	                    td.setAttribute('data-coordinate', '');
+	                    tr.appendChild(td);
+	                }
+
+	                this.table.appendChild(tr);
+	            }
+
+	            document.body.appendChild(this.table);
 	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
+	    }, {
+	        key: 'clear',
+	        value: function clear() {
+	            var _iteratorNormalCompletion = true;
+	            var _didIteratorError = false;
+	            var _iteratorError = undefined;
+
+	            try {
+	                for (var _iterator = document.querySelectorAll('td')[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	                    var td = _step.value;
+
+	                    td.className = '';
+	                }
+	            } catch (err) {
+	                _didIteratorError = true;
+	                _iteratorError = err;
+	            } finally {
+	                try {
+	                    if (!_iteratorNormalCompletion && _iterator.return) {
+	                        _iterator.return();
+	                    }
+	                } finally {
+	                    if (_didIteratorError) {
+	                        throw _iteratorError;
+	                    }
+	                }
+	            }
 	        }
-	      }
-	    }
-	  }, {
-	    key: 'drawSquare',
-	    value: function drawSquare(square, name) {
+	    }, {
+	        key: 'drawSquare',
+	        value: function drawSquare(square, name) {
 
-	      var x = '[data-x="' + square.x + '"]';
-	      var y = '[data-y="' + square.y + '"]';
-	      var item = document.querySelector('td' + x + y);
-	      item.className = name;
-	    }
-	  }, {
-	    key: 'render',
-	    value: function render(state) {
-
-	      if (!this.table) this.createTable(state.boundaries);
-
-	      this.clear();
-
-	      var _iteratorNormalCompletion2 = true;
-	      var _didIteratorError2 = false;
-	      var _iteratorError2 = undefined;
-
-	      try {
-	        for (var _iterator2 = state.snake.body[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	          var square = _step2.value;
-
-	          this.drawSquare(square, 'snake-body');
+	            var x = '[data-x="' + square.x + '"]';
+	            var y = '[data-y="' + square.y + '"]';
+	            var item = document.querySelector('td' + x + y);
+	            item.className = name;
 	        }
-	      } catch (err) {
-	        _didIteratorError2 = true;
-	        _iteratorError2 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion2 && _iterator2.return) {
-	            _iterator2.return();
-	          }
-	        } finally {
-	          if (_didIteratorError2) {
-	            throw _iteratorError2;
-	          }
+	    }, {
+	        key: 'render',
+	        value: function render(state) {
+
+	            if (!this.table) this.createTable(state.boundaries);
+
+	            this.clear();
+
+	            var _iteratorNormalCompletion2 = true;
+	            var _didIteratorError2 = false;
+	            var _iteratorError2 = undefined;
+
+	            try {
+	                for (var _iterator2 = state.snake.body[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	                    var square = _step2.value;
+
+	                    this.drawSquare(square, 'snake-body');
+	                }
+	            } catch (err) {
+	                _didIteratorError2 = true;
+	                _iteratorError2 = err;
+	            } finally {
+	                try {
+	                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	                        _iterator2.return();
+	                    }
+	                } finally {
+	                    if (_didIteratorError2) {
+	                        throw _iteratorError2;
+	                    }
+	                }
+	            }
+
+	            this.drawSquare(state.food, 'snake-food');
 	        }
-	      }
+	    }]);
 
-	      this.drawSquare(state.food, 'snake-food');
-	    }
-	  }]);
-
-	  return BoardBrowserUI;
+	    return BoardBrowserUI;
 	}();
 
 	exports.default = BoardBrowserUI;
