@@ -4,7 +4,7 @@
     "description": "Snake-Game",
     "main": "src/main.js",
     "dependencies": {
-        "vm-browserify": "0.0.4"
+        "vm-browserify": "^0.0.4"
     },
     "devDependencies": {
         "babel-cli": "^6.11.4",
