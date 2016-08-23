@@ -8811,22 +8811,25 @@
 
 	var _engine2 = _interopRequireDefault(_engine);
 
-	var _browser = __webpack_require__(307);
+	var _browser = __webpack_require__(306);
 
 	var _browser2 = _interopRequireDefault(_browser);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+	var game = new _game2.default(_vmShim2.default, code);
+	game.onMove = function (context) {
+	  return ui.render(context);
+	};
+
+	var ui = new _browser2.default();
+
 	window.apply = function () {
+	  var code = document.body.querySelector('#code').value;
 
-		var code = document.body.querySelector('#code').value;
-		var game = new _game2.default(_vmShim2.default, code);
-		var ui = new _browser2.default();
-
-		game.onMove = function (context) {
-			return ui.render(context);
-		};
-		game.run(50);
+	  game.stop();
+	  game.setCode(code);
+	  game.run(50);
 	};
 
 /***/ },
@@ -8975,20 +8978,19 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var Game = function () {
-		function Game(vm, code) {
+		function Game(vm) {
 			_classCallCheck(this, Game);
 
 			this.sandbox = { direction: null };
 			this.vm = vm;
 
-			this.engine = new _engine2.default();
-			this.initSandbox(code);
+			this.engine = null;
 			this.onMove = function () {};
 		}
 
 		_createClass(Game, [{
-			key: 'initSandbox',
-			value: function initSandbox(code) {
+			key: 'setCode',
+			value: function setCode(code) {
 
 				var playerEvaluation = { player: null };
 				this.vm.runInContext(code + '; player = new Player();', playerEvaluation);
@@ -8999,7 +9001,8 @@
 			value: function run(interval) {
 				var _this = this;
 
-				setInterval(function () {
+				this.engine = new _engine2.default();
+				this.gameLoop = setInterval(function () {
 
 					if (!_this.engine.isGameOver()) {
 
@@ -9009,6 +9012,13 @@
 						_this.onMove(_this.engine.getContext());
 					}
 				}, interval);
+			}
+		}, {
+			key: 'stop',
+			value: function stop() {
+				if (this.gameLoop) {
+					clearInterval(this.gameLoop);
+				}
 			}
 		}]);
 
@@ -9281,8 +9291,7 @@
 	exports.default = Feeder;
 
 /***/ },
-/* 306 */,
-/* 307 */
+/* 306 */
 /***/ function(module, exports) {
 
 	'use strict';

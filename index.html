@@ -37,30 +37,26 @@
       <button id="apply" onclick="apply()">Aplicar</button>
       <label>Example of code</label>
       <textarea id="code">
-
-
-
 class Player {
-  
-    move(data) {
+    move(context) {
 
-      const head = data.snake.body[data.snake.body.length-1];
+      const head = context.snake.body[context.snake.body.length-1];
 
-      let move = data.snake.direction;
+      let move = context.snake.direction;
 
-      if (data.snake.direction === 'down'){
-        if (head.x === data.boundaries.x.max) move = 'right';
+      if (context.snake.direction === 'down'){
+        if (head.x === context.boundaries.x.max) move = 'right';
       }
 
-      if (data.snake.direction === 'right') {
-        if (head.y === data.boundaries.y.max) move = 'up';
+      if (context.snake.direction === 'right') {
+        if (head.y === context.boundaries.y.max) move = 'up';
       }
 
-      if (data.snake.direction === 'up') {
+      if (context.snake.direction === 'up') {
         if(head.x === 0) move = 'left';
       }
 
-      if (data.snake.direction === 'left') {
+      if (context.snake.direction === 'left') {
         if(head.y === 0) move = 'down';
       }
 

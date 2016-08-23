@@ -2,17 +2,16 @@ import Engine from './engine';
 
 class Game {
 
-	constructor (vm, code) {
+	constructor (vm) {
 
 		this.sandbox = { direction: null };
 		this.vm = vm;
 
-		this.engine = new Engine();
-		this.initSandbox(code);
+		this.engine = null;
 		this.onMove = () => {};
 	}
 
-	initSandbox (code) {
+	setCode (code) {
 
 		const playerEvaluation = { player:  null };
 		this.vm.runInContext(`${code}; player = new Player();`, playerEvaluation);
@@ -21,7 +20,8 @@ class Game {
 
 	run (interval) {
 
-		setInterval(() => {
+		this.engine = new Engine();
+		this.gameLoop = setInterval(() => {
 
 			if (!this.engine.isGameOver()) {
 
@@ -33,6 +33,10 @@ class Game {
 
 		}, interval);
 	}
+
+  stop () {
+    if( this.gameLoop ) { clearInterval(this.gameLoop); }
+  }
 }
 
 export default Game;
