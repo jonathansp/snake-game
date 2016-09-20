@@ -27,16 +27,19 @@ class Game {
 
         this.engine = new Engine();
         this.gameLoop = setInterval(() => {
-
-            if (!this.engine.isGameOver()) {
-
-                this.sandbox.gameContext = this.engine.getContext(); // clone ?
-                this.vm.runInNewContext('direction = player.move(gameContext)', this.sandbox)
-                this.engine.snakeCrawl(this.sandbox.direction);
-                this.onMove(this.engine.getContext());
-            }
-
+            this.step();
         }, interval);
+    }
+
+    step() {
+        if (!this.engine.isGameOver()) {
+
+            this.sandbox.gameContext = this.engine.getContext(); // clone ?
+            this.vm.runInNewContext('direction = player.move(gameContext)', this.sandbox)
+            this.engine.snakeCrawl(this.sandbox.direction);
+            this.onMove(this.engine.getContext());
+        }
+
     }
 
     stop() {
