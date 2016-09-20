@@ -3,7 +3,6 @@ class Feeder {
     constructor(boundaries) {
         this.lines = boundaries.x.max;
         this.columns = boundaries.y.max;
-        this.plant();
     }
 
     plant(lines, columns) {

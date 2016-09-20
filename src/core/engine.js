@@ -11,7 +11,7 @@ class Engine {
         this.board = new Board();
 
         this.feeder = new Feeder(this.board.boundaries);
-
+        this.feeder.plant();
     }
 
     snakeCrawl(direction) {
