@@ -3,6 +3,7 @@ NODE_MODULES = ./node_modules
 .PHONY: webpack babel-node babel-node-api setup-api setup test
 
 setup-api:
+	sudo apt-get install python2.7 python redis-server
 	cd snake-api && npm install
 
 setup: setup-api
