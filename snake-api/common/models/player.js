@@ -1,6 +1,5 @@
 'use strict';
 
-import {BaseGame, Game} from '../../core/game';
 import Engine from '../../core/engine';
 
 module.exports = function(Player) {
@@ -28,8 +27,6 @@ module.exports = function(Player) {
   },
   Player.move = function(id, direction, cb) {
 
-    console.log(direction);
-
     Player.findById(id, function(error, player) {
 
       if(error) {
@@ -45,10 +42,7 @@ module.exports = function(Player) {
 
           let engine = new Engine({'context': previousCtx});
 
-					console.log('Previous to stepping ' + engine.feeder.food.x + " " + engine.feeder.food.y);
-
           if(engine.step(direction)) {
-						console.log('After stepping ' + engine.feeder.food.x + " " + engine.feeder.food.y);
             player.context.update(engine, function(err, context) {
               return cb(null, engine);
             });
