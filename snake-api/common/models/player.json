@@ -24,7 +24,13 @@
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "context": {
+      "type": "hasOne",
+      "model": "Context",
+      "foreignKey": ""
+    }
+  },
   "acls": [],
   "methods": {}
 }

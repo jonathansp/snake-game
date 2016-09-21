@@ -8,5 +8,8 @@ webpack:
 babel-node:
 	${NODE_MODULES}/babel-cli/bin/babel-node.js src/server.js
 
+babel-node-api:
+	${NODE_MODULES}/babel-cli/bin/babel-node.js snake-api
+
 test:
 	echo 'testing...'

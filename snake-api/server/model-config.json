@@ -35,5 +35,9 @@
   "Player": {
     "dataSource": "snake-db",
     "public": true
+  },
+  "Context": {
+    "dataSource": "snake-db",
+    "public": false
   }
 }

@@ -1,15 +1,77 @@
 'use strict';
 
-const util = require('util');
+import {BaseGame, Game} from '../../core/game';
+import Engine from '../../core/engine';
 
 module.exports = function(Player) {
+  Player.reset = function(id, cb) {
+
+    Player.findById(id, function(error, player) {
+      if(error) {
+        return cb(null, null, error);
+      }
+
+      player.context.destroy(function(error) {
+        if(error) {
+          return cb(null, null, error);
+        }
+
+        player.context.create(function(error, ctx) {
+          if(error) {
+            return cb(null, null, error);
+          } else {
+            return cb(null, ctx);
+          }
+        });
+      });
+    });
+  },
   Player.move = function(id, direction, cb) {
-    console.log(">> " + id);
-    Player.findById(id, function(status, player) {
-      console.log(status);
-      console.log(player);
+
+    console.log(direction);
+
+    Player.findById(id, function(error, player) {
+
+      if(error) {
+        return cb(null, null, { 
+          'info': error, 
+          'msg': 'Failed to load player with id ' + id
+        });
+      }
+
+      player.context(function(error, previousCtx) {
+
+        if(previousCtx) {
+
+          let engine = new Engine({'context': previousCtx});
+
+					console.log('Previous to stepping ' + engine.feeder.food.x + " " + engine.feeder.food.y);
+
+          if(engine.step(direction)) {
+						console.log('After stepping ' + engine.feeder.food.x + " " + engine.feeder.food.y);
+            player.context.update(engine, function(err, context) {
+              return cb(null, engine);
+            });
+          } else {
+            return cb(null, null, {'msg': 'Game Over'});
+          }
+
+        } else {
+
+          player.context.create(function(err, newCtx) {
+
+            if(error) {
+              return cb(null, null, { 
+                'info': error, 
+                'msg': 'Failed to create player context for id ' + id
+              });
+            } else {
+              return cb(null, newCtx);
+            }
+          }); 
+        }
+      });
     })
-    return cb(null, {"result": false})
   },
   Player.remoteMethod(
     'move',
@@ -25,13 +87,34 @@ module.exports = function(Player) {
           arg: "direction", 
           type: "string",
           default: "down",
-          http: { source: "body" },
           required: false
         }
       ],
       http: {'path': '/:id/move', verb: 'post'},
-      returns: {arg: 'context', 'type': 'object'},
+      returns: [
+        {arg: 'context', 'type': 'object'},
+        {arg: 'error', 'type': 'object'}
+      ],
       notes: "Performs a move and returns the new context resulting from it."
+    }
+  ),
+  Player.remoteMethod(
+    'reset',
+    {
+      accepts: [
+        {
+          arg: 'id', 
+          type: 'number', 
+          required: true,
+          http: { source: "path" }
+        }
+      ],
+      http: {'path': '/:id/reset', verb: 'post'},
+      returns: [
+        {arg: 'context', 'type': 'object'},
+        {arg: 'error', 'type': 'object'}
+      ],
+      notes: "Resets previous context and returns a new context."
     }
   );
 };
