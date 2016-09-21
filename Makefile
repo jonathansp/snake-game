@@ -1,6 +1,12 @@
 NODE_MODULES = ./node_modules
 
-.PHONY: webpack babel-node test
+.PHONY: webpack babel-node babel-node-api setup-api setup test
+
+setup-api:
+	cd snake-api && npm install
+
+setup: setup-api
+	npm install
 
 webpack:
 	${NODE_MODULES}/webpack/bin/webpack.js -p
