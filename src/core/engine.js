@@ -7,11 +7,15 @@ class Engine {
 
     constructor(options) {
 
-        this.snake = new Snake()
-        this.board = new Board();
+        options = options || {};
+        let context = options['context'] || {};
 
-        this.feeder = new Feeder(this.board.boundaries);
-        this.feeder.plant();
+        this.snake = new Snake(context['snake'] || {})
+        this.board = new Board(context['board'] || {});
+        this.feeder = new Feeder(context['feeder'] || {
+          'lines': this.board.lines,
+          'columns': this.board.columns
+        })
     }
 
     snakeCrawl(direction) {
@@ -26,6 +30,17 @@ class Engine {
         }
 
         this.snake.move();
+    }
+
+    step(direction) {
+
+        let gameOver = this.isGameOver();
+
+        if (!gameOver) {
+            this.snakeCrawl(direction);
+        }
+
+        return !gameOver;
     }
 
     isGameOver() {

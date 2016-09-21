@@ -1,9 +1,9 @@
 class Board {
 
-  constructor (lines, columns) {
+  constructor (options) {
 
-    this.lines = lines || 30;
-    this.columns = columns || 30;
+    this.lines = options['lines'] || 30;
+    this.columns = options['columns'] || 30;
     this.boundaries = {
           x: { min: 0, max: this.lines - 1 },
           y: { min: 0, max: this.columns - 1 }

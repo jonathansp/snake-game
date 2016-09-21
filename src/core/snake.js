@@ -1,8 +1,8 @@
 class Snake {
 
-    constructor() {
+    constructor(options) {
 
-        this.body = [
+        this.body = options['body'] || [
 
             { x: 0, y: 0 }, // <- TAIL
             { x: 1, y: 0 },
@@ -10,7 +10,7 @@ class Snake {
             { x: 3, y: 0 } // <- HEAD
         ];
 
-        this.walkingTo = 'down';
+        this.walkingTo = options['walkingTo'] || 'down';
     }
 
     to(direction) {

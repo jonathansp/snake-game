@@ -1,8 +1,15 @@
 class Feeder {
 
-    constructor(boundaries) {
-        this.lines = boundaries.x.max;
-        this.columns = boundaries.y.max;
+    constructor(options) {
+
+        this.lines = options['lines'];
+        this.columns = options['columns'];
+
+        if('food' in options) {
+          this.food = options['food'];
+        } else {
+          this.plant();
+        }
     }
 
     plant(lines, columns) {
