@@ -1,0 +1,69 @@
+{
+  "name": "Context",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "board": {
+      "type": "object",
+      "required": true,
+      "default": {
+        "boundaries": {
+          "x": {
+            "min": 0,
+            "max": 29
+          },
+          "y": {
+            "min": 0,
+            "max": 29
+          }
+        },
+        "lines": 30,
+        "columns": 30
+      }
+    },
+    "feeder": {
+      "type": "object",
+      "required": true,
+      "default": {
+        "food": {
+          "x": 14,
+          "y": 14
+        },
+        "lines": 29,
+        "columns": 29
+      }
+    },
+    "snake": {
+      "type": "object",
+      "required": true,
+      "default": {
+        "body": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 1,
+            "y": 0
+          },
+          {
+            "x": 2,
+            "y": 0
+          },
+          {
+            "x": 3,
+            "y": 0
+          }
+        ],
+        "walkingTo": "down"
+      }
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}
